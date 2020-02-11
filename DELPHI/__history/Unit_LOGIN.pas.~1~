@@ -1,0 +1,141 @@
+unit Unit_LOGIN;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, pngimage, ExtCtrls, DB, ADODB, jpeg;
+
+type
+  TForm1 = class(TForm)
+    Image1: TImage;
+    Image2: TImage;
+    Edit1: TEdit;
+    Edit2: TEdit;
+    Image3: TImage;
+    ADOConnection1: TADOConnection;
+    ADOQuery1: TADOQuery;
+    Image4: TImage;
+    QUERY_USU: TADOQuery;
+    QUERY_USUCOD_USUARIO: TAutoIncField;
+    QUERY_USUNOME_USUARIO: TStringField;
+    QUERY_USULOGIN_USUARIO: TStringField;
+    QUERY_USUSENHA_USUARIO: TStringField;
+    QUERY_USUFUNCIONARIO_USUARIO: TIntegerField;
+    QUERY_USUDENTISTA_USUARIO: TIntegerField;
+    QUERY_USUTIPO_USUARIO: TBooleanField;
+    QUERY_USUSTATUS_USUARIO: TBooleanField;
+    QUERY_USUDTHORACADASTRO_USUARIO: TDateTimeField;
+    Label1: TLabel;
+    procedure FormShow(Sender: TObject);
+    procedure Image2Click(Sender: TObject);
+    procedure Image3Click(Sender: TObject);
+    procedure Image4MouseEnter(Sender: TObject);
+    procedure Image4MouseLeave(Sender: TObject);
+    procedure Edit2KeyPress(Sender: TObject; var Key: Char);
+    procedure Label1Click(Sender: TObject);
+    procedure Label1MouseEnter(Sender: TObject);
+    procedure Label1MouseLeave(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    login:string;
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+uses Unit_TELA_PRINCIPAL, Unit_TRATAMENTOS, UNIT_LIXO;
+
+{$R *.dfm}
+
+procedure TForm1.Edit2KeyPress(Sender: TObject; var Key: Char);
+begin
+  if key = #13 then
+  begin
+     Image2Click(self);
+  end;
+end;
+
+procedure TForm1.FormShow(Sender: TObject);
+begin
+ Form1.Brush.Style:= bsClear;
+end;
+
+procedure TForm1.Image2Click(Sender: TObject);
+begin
+  ADOQuery1.Close;
+  ADOQuery1.Parameters.ParamByName('Login').Value:=Edit1.Text;
+  ADOQuery1.Parameters.ParamByName('Senha').Value:=Edit2.Text;
+  ADOQuery1.Open;
+
+   if Edit1.Text=EmptyStr then
+    begin
+      Application.MessageBox('Informe seu login!', 'Atenção!', MB_ICONWARNING);
+      Edit1.SetFocus;
+      Exit;
+    end;
+
+   if Edit2.Text=EmptyStr then
+    begin
+      Application.MessageBox('Informe sua senha!', 'Atenção!', MB_ICONWARNING);
+      Edit2.SetFocus;
+      Exit;
+    end;
+ //----------------------------------------------------------------------------------------------\\
+ login:=Edit1.Text;
+ //----------------------------------------------------------------------------------------------\\
+
+   if ADOQuery1.RecordCount>0 then
+    Begin
+      Application.MessageBox('Você será redirecionado(a) à tela principal!', 'Bem vindo(a)', MB_ICONMASK);
+      //ShowMessage('Seja bem vindo(a) '+login+' Você será redirecionado à tela principal!' );
+      Unit_TELA_PRINCIPAL.Form_TELA_PRINCIPAL.LBL_USUARIO.Caption := Unit_LOGIN.Form1.Edit1.Text ;
+      Unit_TELA_PRINCIPAL.Form_TELA_PRINCIPAL.ShowModal;
+      Unit_LOGIN.Form1.CloseModal;
+    End
+
+   else
+   begin
+     Application.MessageBox('Login e/ou senha incorreto(s)!', 'Atenção!', MB_ICONWARNING);
+     Edit1.Clear;
+     Edit2.Clear;
+     Edit1.SetFocus;
+   end;
+
+end;
+
+procedure TForm1.Image3Click(Sender: TObject);
+begin
+ Unit_LOGIN.Form1.Close;
+end;
+
+procedure TForm1.Image4MouseEnter(Sender: TObject);
+begin
+ Edit2.PasswordChar:=#0;
+end;
+
+procedure TForm1.Image4MouseLeave(Sender: TObject);
+begin
+ Edit2.PasswordChar:='*';
+end;
+
+procedure TForm1.Label1Click(Sender: TObject);
+begin
+UNIT_LIXO.RECUPERA_SENHA.ShowModal;
+end;
+
+procedure TForm1.Label1MouseEnter(Sender: TObject);
+begin
+ Label1.Font.Style:=[fsBold, fsUnderline];
+end;
+
+procedure TForm1.Label1MouseLeave(Sender: TObject);
+begin
+ Label1.Font.Style:=[fsUnderline];
+end;
+
+end.

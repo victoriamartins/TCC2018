@@ -1,0 +1,681 @@
+unit Unit_CONSULTA_DENTISTA;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Grids, DBGrids, ExtCtrls, jpeg, pngimage, DB, ADODB,
+  RpRave, RpDefine, RpCon, RpConDS;
+
+type
+  TForm_CONSULTA_DENTISTA = class(TForm)
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
+    Label6: TLabel;
+    DBGrid1: TDBGrid;
+    Edit1: TEdit;
+    Edit2: TEdit;
+    RadioGroup1: TRadioGroup;
+    RadioGroup2: TRadioGroup;
+    Edit8: TEdit;
+    Label9: TLabel;
+    Label10: TLabel;
+    Label11: TLabel;
+    Label12: TLabel;
+    Label13: TLabel;
+    RadioGroup3: TRadioGroup;
+    RadioGroup4: TRadioGroup;
+    Edit3: TEdit;
+    Image1: TImage;
+    Image2: TImage;
+    Image3: TImage;
+    Image4: TImage;
+    Image5: TImage;
+    Image6: TImage;
+    Image7: TImage;
+    ALTERA_DENTISTA: TADOStoredProc;
+    DataSource1: TDataSource;
+    Button1: TButton;
+    Label1: TLabel;
+    Label8: TLabel;
+    Edit4: TEdit;
+    ADOQuery1: TADOQuery;
+    ADOQuery1COD_DENTISTA: TAutoIncField;
+    ADOQuery1NOME_DENTISTA: TStringField;
+    ADOQuery1SEXO_DENTISTA: TStringField;
+    ADOQuery1CRO_DENTISTA: TStringField;
+    ADOQuery1EMAIL_DENTISTA: TStringField;
+    ADOQuery1STATUS_DENTISTA: TStringField;
+    ADOQuery1DTHORACADASTRO_DENTISTA: TDateTimeField;
+    ADOConnection1: TADOConnection;
+    Timer1: TTimer;
+    lbl_data: TLabel;
+    GERARELAT: TImage;
+    GRAVA_LOG: TADOStoredProc;
+    RV_TODOS_DENT: TRvDataSetConnection;
+    PJ_TODOS_DENT: TRvProject;
+    procedure Image3MouseLeave(Sender: TObject);
+    procedure Image3Click(Sender: TObject);
+    procedure Image2MouseEnter(Sender: TObject);
+    procedure Image5Click(Sender: TObject);
+    procedure Image6Click(Sender: TObject);
+    procedure Image7Click(Sender: TObject);
+    procedure LabelAtualizado(Sender: TObject);
+    procedure DBGrid1CellClick(Column: TColumn);
+    procedure Button1Click(Sender: TObject);
+    procedure RadioGroup1Click(Sender: TObject);
+    procedure RadioGroup2Click(Sender: TObject);
+    procedure Edit8Change(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure ADOQuery1STATUS_DENTISTAGetText(Sender: TField; var Text: string;
+      DisplayText: Boolean);
+    procedure Timer1Timer(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure GERARELATClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form_CONSULTA_DENTISTA: TForm_CONSULTA_DENTISTA;
+
+implementation
+
+uses UNIT_GRAVA_DENTISTA, Unit_TELA_PRINCIPAL;
+
+{$R *.dfm}
+
+procedure TForm_CONSULTA_DENTISTA.LabelAtualizado(Sender: TObject);
+begin
+// Edit
+
+    Edit1.Text := IntToStr(ADOQuery1COD_DENTISTA.AsInteger);
+    Edit2.Text := ADOQuery1NOME_DENTISTA.AsString;
+    Edit3.Text := IntToStr(ADOQuery1CRO_DENTISTA.AsInteger);
+    Edit4.Text := ADOQuery1EMAIL_DENTISTA.AsString;
+
+// Label
+
+    Label9.Caption  := IntToStr(ADOQuery1COD_DENTISTA.AsInteger);
+    Label10.Caption := ADOQuery1NOME_DENTISTA.AsString;
+    Label12.Caption := IntToStr(ADOQuery1CRO_DENTISTA.AsInteger);
+    Label8.Caption  := ADOQuery1EMAIL_DENTISTA.AsString;
+
+// Radio Group
+
+    if ADOQuery1SEXO_DENTISTA.AsString = 'M' then
+    begin
+        RadioGroup4.ItemIndex:= 0;
+        Label11.Caption:= 'Masculino';
+    end
+
+    else if ADOQuery1SEXO_DENTISTA.AsString = 'F' then
+    begin
+        RadioGroup4.ItemIndex:= 1;
+        Label11.Caption:= 'Feminino';
+    end;
+     ///////
+    if ADOQuery1STATUS_DENTISTA.AsString = '1' then
+    begin
+        RadioGroup3.ItemIndex:= 0;
+        Label13.Caption:= 'Ativo';
+    end
+
+    else if ADOQuery1STATUS_DENTISTA.AsString = '0' then
+    begin
+        RadioGroup3.ItemIndex:= 1;
+        Label13.Caption:= 'Inativo';
+    end;
+
+    Image7.Enabled := false;
+end;
+
+procedure TForm_CONSULTA_DENTISTA.RadioGroup1Click(Sender: TObject);
+begin
+    Edit8.Enabled := TRUE;
+    Edit8.SetFocus;
+end;
+
+procedure TForm_CONSULTA_DENTISTA.RadioGroup2Click(Sender: TObject);
+var
+NOME, CRO, EMAIL : STRING;
+begin
+
+    NOME :=  'NOME_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+    CRO :=    'CRO_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+    EMAIL := 'EMAIL_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+
+    if RadioGroup1.ItemIndex = -1 then //só o MOSTRAR
+    begin
+              if RadioGroup2.ItemIndex = 0 then
+              begin
+                  ADOQuery1.close;
+                  ADOQuery1.Active := false;
+                  ADOQuery1.SQL.Clear;
+                  ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA' ;
+                  ADOQuery1.Active := true;
+                  ADOQuery1.open;
+
+
+              end
+              else if RadioGroup2.ItemIndex = 1 then
+              begin
+                  ADOQuery1.close;
+                  ADOQuery1.Active := false;
+                  ADOQuery1.SQL.Clear;
+                  ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where STATUS_DENTISTA = 1';
+                  ADOQuery1.Active := true;
+                  ADOQuery1.open;
+
+
+              end
+              else if RadioGroup2.ItemIndex = 2 then
+              begin
+                  ADOQuery1.close;
+                  ADOQuery1.Active := false;
+                  ADOQuery1.SQL.Clear;
+                  ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where STATUS_DENTISTA = 0';
+                  ADOQuery1.Active := true;
+                  ADOQuery1.open;
+
+              end
+              else
+                exit;
+    end;
+
+    if RadioGroup1.ItemIndex <> -1 then // o MOSTRAR e o FILTRAR
+    begin
+         if RadioGroup1.ItemIndex = 0 then
+         Begin
+              if RadioGroup2.ItemIndex = 0 then
+              begin
+                  ADOQuery1.close;
+                  ADOQuery1.Active := false;
+                  ADOQuery1.SQL.Clear;
+                  ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where '+NOME;
+                  ADOQuery1.Active := true;
+                  ADOQuery1.open;
+
+              end
+              else if RadioGroup2.ItemIndex = 1 then
+              begin
+                  ADOQuery1.close;
+                  ADOQuery1.Active := false;
+                  ADOQuery1.SQL.Clear;
+                  ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where STATUS_DENTISTA = 0 and '+NOME;
+                  ADOQuery1.Active := true;
+                  ADOQuery1.open;
+
+              end
+              else if RadioGroup2.ItemIndex = 2 then
+              begin
+                  ADOQuery1.close;
+                  ADOQuery1.Active := false;
+                  ADOQuery1.SQL.Clear;
+                  ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where STATUS_DENTISTA = 1 and '+NOME;
+                  ADOQuery1.Active := true;
+                  ADOQuery1.open;
+
+              end
+              else
+                exit;
+         End;
+
+         if RadioGroup1.ItemIndex = 1 then
+         Begin
+              if RadioGroup2.ItemIndex = 0 then
+              begin
+                  ADOQuery1.close;
+                  ADOQuery1.Active := false;
+                  ADOQuery1.SQL.Clear;
+                  ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where '+CRO;
+                  ADOQuery1.Active := true;
+                  ADOQuery1.open;
+
+              end
+              else if RadioGroup2.ItemIndex = 1 then
+              begin
+                  ADOQuery1.close;
+                  ADOQuery1.Active := false;
+                  ADOQuery1.SQL.Clear;
+                  ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where STATUS_DENTISTA = 0 and '+CRO;
+                  ADOQuery1.Active := true;
+                  ADOQuery1.open;
+
+              end
+              else if RadioGroup2.ItemIndex = 2 then
+              begin
+                  ADOQuery1.close;
+                  ADOQuery1.Active := false;
+                  ADOQuery1.SQL.Clear;
+                  ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where STATUS_DENTISTA = 1 and '+CRO;
+                  ADOQuery1.Active := true;
+                  ADOQuery1.open;
+
+              end
+              else
+                exit;
+         End;
+
+         if RadioGroup1.ItemIndex = 2 then
+         Begin
+              if RadioGroup2.ItemIndex = 0 then
+              begin
+                  ADOQuery1.close;
+                  ADOQuery1.Active := false;
+                  ADOQuery1.SQL.Clear;
+                  ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where '+EMAIL;
+                  ADOQuery1.Active := true;
+                  ADOQuery1.open;
+
+              end
+              else if RadioGroup2.ItemIndex = 1 then
+              begin
+                  ADOQuery1.close;
+                  ADOQuery1.Active := false;
+                  ADOQuery1.SQL.Clear;
+                  ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where STATUS_DENTISTA = 0 and '+EMAIL;
+                  ADOQuery1.Active := true;
+                  ADOQuery1.open;
+
+              end
+              else if RadioGroup2.ItemIndex = 2 then
+              begin
+                  ADOQuery1.close;
+                  ADOQuery1.Active := false;
+                  ADOQuery1.SQL.Clear;
+                  ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where STATUS_DENTISTA = 1 and '+EMAIL;
+                  ADOQuery1.Active := true;
+                  ADOQuery1.open;
+
+              end
+              else
+                exit;
+         End;
+
+    end;
+end;
+
+procedure TForm_CONSULTA_DENTISTA.Timer1Timer(Sender: TObject);
+begin
+  lbl_data.caption := datetostr(date)+ ' | ' + timetostr(time);
+end;
+
+procedure TForm_CONSULTA_DENTISTA.ADOQuery1STATUS_DENTISTAGetText(
+  Sender: TField; var Text: string; DisplayText: Boolean);
+begin
+
+  if ADOQuery1STATUS_DENTISTA.AsString = '1' then
+  begin
+    Text:= 'ATIVO';
+  end;
+  if ADOQuery1STATUS_DENTISTA.AsString = '0' then
+  begin
+    Text := 'INATIVO';
+  end;
+end;
+
+procedure TForm_CONSULTA_DENTISTA.Button1Click(Sender: TObject);
+begin
+    Edit8.Enabled := false ;
+    Edit8.Clear ;
+    RadioGroup1.ItemIndex := -1;
+    RadioGroup2.ItemIndex := 0;
+end;
+
+procedure TForm_CONSULTA_DENTISTA.DBGrid1CellClick(Column: TColumn);
+begin
+    LabelAtualizado(Self);
+
+    Label8.Visible  := TRUE;
+    Label9.Visible  := TRUE;
+    Label10.Visible := TRUE;
+    Label11.Visible := TRUE;
+    Label12.Visible := TRUE;
+    Label13.Visible := TRUE;
+
+    Edit1.Visible := false;
+    Edit2.Visible := false;
+    Edit3.Visible := false;
+    Edit4.Visible := false;
+
+    RadioGroup3.Visible := false;
+    RadioGroup4.Visible := false;
+    Image7.Enabled := false;
+
+end;
+
+procedure TForm_CONSULTA_DENTISTA.Edit8Change(Sender: TObject);
+begin
+   Edit8.Enabled := true ;
+
+    if RadioGroup2.ItemIndex = -1 then // digitado o nome e se estiver desmarcado o MOSTRAR
+    begin
+        if RadioGroup1.ItemIndex = 0 then
+        begin
+            ADOQuery1.close;
+            ADOQuery1.Active := false;
+            ADOQuery1.SQL.Clear;
+            ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where NOME_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+            ADOQuery1.Active := true;
+            ADOQuery1.open;
+        end
+        else if RadioGroup1.ItemIndex = 1 then
+        begin
+           ADOQuery1.close;
+            ADOQuery1.Active := false;
+            ADOQuery1.SQL.Clear;
+            ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where CRO_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+            ADOQuery1.Active := true;
+            ADOQuery1.open;
+        end
+        else if RadioGroup1.ItemIndex = 2 then
+        begin
+            ADOQuery1.close;
+            ADOQuery1.Active := false;
+            ADOQuery1.SQL.Clear;
+            ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where EMAIL_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+            ADOQuery1.Active := true;
+            ADOQuery1.open;
+        end;
+    end
+    else if RadioGroup2.ItemIndex <> -1 then// digitado o nome e se estiver MARCADOOOOO o MOSTRAR
+    begin
+          if RadioGroup2.ItemIndex=0 then //TODOS
+          begin
+                      if RadioGroup1.ItemIndex = 0 then
+                      begin
+                          ADOQuery1.close;
+                          ADOQuery1.Active := false;
+                          ADOQuery1.SQL.Clear;
+                          ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where NOME_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+                          ADOQuery1.Active := true;
+                          ADOQuery1.open;
+                      end
+                      else if RadioGroup1.ItemIndex = 1 then
+                      begin
+                          ADOQuery1.close;
+                          ADOQuery1.Active := false;
+                          ADOQuery1.SQL.Clear;
+                          ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where CRO_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+                          ADOQuery1.Active := true;
+                          ADOQuery1.open;
+                      end
+                      else if RadioGroup1.ItemIndex = 2 then
+                      begin
+                          ADOQuery1.close;
+                          ADOQuery1.Active := false;
+                          ADOQuery1.SQL.Clear;
+                          ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where EMAIL_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+                          ADOQuery1.Active := true;
+                          ADOQuery1.open;
+                      end;
+          end;
+
+          if RadioGroup2.ItemIndex=1 then //Ativo
+          begin
+                      if RadioGroup1.ItemIndex = 0 then
+                      begin
+                          ADOQuery1.close;
+                          ADOQuery1.Active := false;
+                          ADOQuery1.SQL.Clear;
+                          ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where STATUS_DENTISTA=0 and NOME_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+                          ADOQuery1.Active := true;
+                          ADOQuery1.open;
+                      end
+                      else if RadioGroup1.ItemIndex = 1 then
+                      begin
+                         ADOQuery1.close;
+                          ADOQuery1.Active := false;
+                          ADOQuery1.SQL.Clear;
+                          ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where STATUS_DENTISTA=0 and CRO_DENTISTA like '+ QuotedStr(Edit8.Text+'% ') ;
+                          ADOQuery1.Active := true;
+                          ADOQuery1.open;
+                      end
+                      else if RadioGroup1.ItemIndex = 2 then
+                      begin
+                          ADOQuery1.close;
+                          ADOQuery1.Active := false;
+                          ADOQuery1.SQL.Clear;
+                          ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where STATUS_DENTISTA=0 and EMAIL_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+                          ADOQuery1.Active := true;
+                          ADOQuery1.open;
+                      end;
+          end;
+
+          if RadioGroup2.ItemIndex=2 then //Inativo
+          begin
+                      if RadioGroup1.ItemIndex = 0 then
+                      begin
+                          ADOQuery1.close;
+                          ADOQuery1.Active := false;
+                          ADOQuery1.SQL.Clear;
+                          ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where STATUS_DENTISTA=1 and NOME_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+                          ADOQuery1.Active := true;
+                          ADOQuery1.open;
+                      end
+                      else if RadioGroup1.ItemIndex = 1 then
+                      begin
+                         ADOQuery1.close;
+                          ADOQuery1.Active := false;
+                          ADOQuery1.SQL.Clear;
+                          ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where STATUS_DENTISTA=1 and CRO_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+                          ADOQuery1.Active := true;
+                          ADOQuery1.open;
+                      end
+                      else if RadioGroup1.ItemIndex = 2 then
+                      begin
+                          ADOQuery1.close;
+                          ADOQuery1.Active := false;
+                          ADOQuery1.SQL.Clear;
+                          ADOQuery1.sql.Text := 'SELECT * FROM TB_DENTISTA where   STATUS_DENTISTA=1 and EMAIL_DENTISTA like '+ QuotedStr(Edit8.Text+'%') ;
+                          ADOQuery1.Active := true;
+                          ADOQuery1.open;
+                      end;
+          end;
+    end;
+end;
+
+procedure TForm_CONSULTA_DENTISTA.FormCreate(Sender: TObject);
+begin
+ lbl_data.Caption :=  FormatDateTime('dd/mm/yyyy | hh:mm:ss', Now);
+end;
+
+procedure TForm_CONSULTA_DENTISTA.FormShow(Sender: TObject);
+begin
+ LabelAtualizado(Self);
+ ADOQuery1.Active := false ;
+ ADOQuery1.Active := true ;
+ RadioGroup2.ItemIndex := 0;
+ RadioGroup1.ItemIndex := -1 ;
+end;
+
+procedure TForm_CONSULTA_DENTISTA.GERARELATClick(Sender: TObject);
+begin
+
+    Application.MessageBox('Ligue a impressora!', 'Atenção!', MB_ICONEXCLAMATION);
+    PJ_TODOS_DENT.Execute;
+
+end;
+
+procedure TForm_CONSULTA_DENTISTA.Image2MouseEnter(Sender: TObject);
+begin
+    Image3.Visible:=True;
+end;
+
+procedure TForm_CONSULTA_DENTISTA.Image3Click(Sender: TObject);
+begin
+    Form_CONSULTA_DENTISTA.Close;
+end;
+
+procedure TForm_CONSULTA_DENTISTA.Image3MouseLeave(Sender: TObject);
+begin
+    Image3.Visible:=False;
+end;
+
+procedure TForm_CONSULTA_DENTISTA.Image5Click(Sender: TObject);
+begin
+ Form_GRAVA_DENTISTA.ShowModal;
+end;
+
+procedure TForm_CONSULTA_DENTISTA.Image6Click(Sender: TObject);
+begin
+
+    if (Edit2.Text = EmptyStr) then
+    begin
+        Application.MessageBox('Selecione um dentista!','ATENÇÃO!',MB_ICONEXCLAMATION);
+        exit;
+    end;
+
+
+    Label8.Visible  := FALSE;
+    Label9.Visible  := FALSE;
+    Label10.Visible := FALSE;
+    Label11.Visible := FALSE;
+    Label12.Visible := FALSE;
+    Label13.Visible := FALSE;
+
+    Edit1.Visible := TRUE;
+    Edit2.Visible := TRUE;
+    Edit3.Visible := TRUE;
+    Edit4.Visible := TRUE;
+
+    RadioGroup3.Visible := TRUE;
+    RadioGroup4.Visible := TRUE;
+
+    Image7.Enabled := true;
+end;
+
+procedure TForm_CONSULTA_DENTISTA.Image7Click(Sender: TObject);
+var
+  Cod_dentista_Selecionado : integer;
+  dia_c , mes_c, ano_c, hora_c: string;
+begin
+    if Edit1.Text = '' then
+    begin
+        Application.MessageBox('Preencha o campo do código!', 'Atenção!', MB_ICONWARNING);
+        Edit1.SetFocus;
+        Exit;
+    end
+
+    else if Edit2.Text = '' then
+    begin
+        Application.MessageBox('Preencha o campo do nome!', 'Atenção!', MB_ICONWARNING);
+        Edit2.SetFocus;
+        Exit;
+    end
+
+    else if Edit3.Text = '' then
+    begin
+        Application.MessageBox('Preencha o campo do CRO!', 'Atenção!', MB_ICONWARNING);
+        Edit3.SetFocus;
+        Exit;
+    end
+
+    else if RadioGroup4.ItemIndex = -1 then
+    begin
+        Application.MessageBox('Preencha o campo do sexo!', 'Atenção!', MB_ICONWARNING);
+        Exit;
+    end
+
+    else if RadioGroup3.ItemIndex = -1 then
+    begin
+        Application.MessageBox('Preencha o campo do status!', 'Atenção!', MB_ICONWARNING);
+        Exit;
+    end;
+
+
+
+if Application.MessageBox('Tem certeza que deseja alterar o Dentista?', 'ALTERAR', MB_ICONQUESTION + MB_YESNO) = IDYES then
+   begin
+    ALTERA_DENTISTA.Parameters.ParamByName('@CODIGO').Value := StrToInt(Edit1.Text);
+    ALTERA_DENTISTA.Parameters.ParamByName('@NOME').Value := Edit2.Text;
+    ALTERA_DENTISTA.Parameters.ParamByName('@CRO').Value := StrToInt(Edit3.Text);
+    ALTERA_DENTISTA.Parameters.ParamByName('@EMAIL').Value := Edit4.Text;
+
+    if RadioGroup4.ItemIndex = 0 then
+    begin
+        ALTERA_DENTISTA.Parameters.ParamByName('@SEXO').Value := 'M';
+    end
+
+    else if RadioGroup4.ItemIndex = 1 then
+    begin
+        ALTERA_DENTISTA.Parameters.ParamByName('@SEXO').Value := 'F';
+    end;
+
+    if RadioGroup3.ItemIndex = 0 then
+    begin
+        ALTERA_DENTISTA.Parameters.ParamByName('@STATUS').Value := 1 ;
+    end
+
+    else if RadioGroup3.ItemIndex = 1 then
+    begin
+        ALTERA_DENTISTA.Parameters.ParamByName('@STATUS').Value := 0;
+    end;
+
+        Cod_dentista_Selecionado := DBGrid1.DataSource.DataSet.RecNo;
+        ALTERA_DENTISTA.ExecProc;
+
+
+  dia_c := Copy(lbl_data.Caption,1,2);
+  mes_c := Copy(lbl_data.Caption,4,2);
+  ano_c := Copy(lbl_data.Caption,7,4);
+  hora_c := Copy(lbl_data.Caption,14,8);
+
+    WITH Unit_TELA_PRINCIPAL.Form_TELA_PRINCIPAL.QUERY_USUARIO DO
+    begin
+      CLOSE;
+      Parameters.ParamByName('U_LOGIN').Value := Unit_TELA_PRINCIPAL.Form_TELA_PRINCIPAL.LBL_USUARIO.Caption;
+      OPEN;
+    end;
+
+    with GRAVA_LOG do
+    begin
+      Parameters.ParamByName('@DESCRICAO').Value := 'Dentista nº ' + Edit1.Text + ' alterado.' ;
+      Parameters.ParamByName('@USUARIO').Value := Unit_TELA_PRINCIPAL.Form_TELA_PRINCIPAL.QUERY_USUARIOCOD_USUARIO.AsInteger;
+      Parameters.ParamByName('@DTHORA').Value := ano_c + '-' + mes_c + '-' + dia_c + ' ' + hora_c;
+      ExecProc;
+    end;
+
+        ADOQuery1.Active := false;
+        ADOQuery1.Active := true;
+
+        DBGrid1.DataSource.DataSet.RecNo := Cod_dentista_Selecionado;
+        LabelAtualizado(Self);
+
+   end
+
+    else
+    begin
+        Image4.Enabled := false;
+    end;
+
+    //ATUALIZANDO OS LABELS
+
+    ADOQuery1.Active:= FALSE;
+    ADOQuery1.Active:= TRUE;
+
+
+
+    Label8.Visible := TRUE;
+    Label9.Visible := TRUE;
+    Label10.Visible := TRUE;
+    Label11.Visible := TRUE;
+    Label12.Visible := TRUE;
+    Label13.Visible := TRUE;
+
+    Edit1.Visible := FALSE;
+    Edit2.Visible := FALSE;
+    Edit3.Visible := FALSE;
+    Edit4.Visible := FALSE;
+
+    RadioGroup3.Visible := FALSE;
+    RadioGroup4.Visible := FALSE;
+    Image7.Enabled := false;
+end;
+
+end.
